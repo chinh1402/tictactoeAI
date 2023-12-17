@@ -12,23 +12,29 @@ class BasicBoardLogic:
         self.board_col = board_col
         self.number_score_to_win = number_score_to_win
         self.square_size = board_width // self.board_row
+        # Create an array which filled with "0"
         self._squares = np.zeros((board_row, board_col))
+        # This array contain all the squares that are marked
         self._listMarked = []
         self._winningLine = None
 
     # Mark squares action
     def markSquare(self, playerId, row, col):
+        # Mark the squares that was checked to be from playerId, so the board can only have
+        # 2 numerical value which represent each player, imagine a random matrix of bit
         self._squares[row][col] = playerId
         self._number_of_turn += 1
         self._listMarked.append(BoardTurnDetails(playerId, row, col))
 
     # Get board winning state, return playerId if it has won player else return 0
     def getWinningState(self):
+        # The logic is: check the last turn data, then use checkLineFromPos to determined if the game is won or not
         if len(self._listMarked) == 0:
             return 0
         lastTurn = self._listMarked[-1]
         playerId = lastTurn.playerId
         row, col = lastTurn.position
+        # Take the isWinning bool
         if self.checkLineFromPos(playerId, row, col, 1, 0)[0] \
                 or self.checkLineFromPos(playerId, row, col, 0, 1)[0] \
                 or self.checkLineFromPos(playerId, row, col, 1, 1)[0] \
@@ -36,12 +42,23 @@ class BasicBoardLogic:
             return playerId
         return 0
 
+    # Checking from position
+
+    # Each time Inputting a move, invoke markSquare (in BoardGUI), which in turn, invoke getWinningStates, which invokes this (checkLineFromPos)
+    # Fine logic; After inputting in a move (I assumed), Taking that move as the position to
+    # be checked! Changerow, changeCol value can be either 1, 0, represent the directions
+    # If count > score (3 or 5) => Win! 
+
+
     def checkLineFromPos(self, playerId, row, col, changeRow, changeCol):
         # Get before squares from pos
         tempRow = row - changeRow
         tempCol = col - changeCol
         count = 1
+        # Holding Initial position
         startPoint = (row, col)
+
+        # While it is valid & it is from the same player 
         while self.isValidateRowCol(tempRow, tempCol) and self._squares[tempRow][tempCol] == playerId:
             count += 1
             startPoint = (tempRow, tempCol)
@@ -127,19 +144,38 @@ class BasicBoardLogic:
 
 class AdvancedBoardLogic(BasicBoardLogic):
     def getMostBenefitSqrs(self, selfPlayer, oppositePlayer):
+        # print("Player has played a move in easy mode")
+        # Row wise
+        # print(self._squares[0])
+        # Move wise
+        # print(int(self._squares[0][1]))
+        # Last move doesn't print because the game is not running, check GamePlay.GameAction.py
+
         if self.isFull():
             return -1, -1
+        # Take all the empty squares on hte board
         emptySqr = self.getEmptySquares()
         max_point = 0
+
+        # Take the first square as next_mark?
+        # Initialize mark to start running thruu the fucking board like an idiot
         next_mark = emptySqr[0]
         for row, col in emptySqr:
+            # Loop thru every single fucking square to check if the next move 
+            # It gonna check: if opponent has more point than you then block, otherwise, play
+            
+            # assume AI gonna goes into specific square
             self_point = self.getScoreOfPosition(selfPlayer, row, col)
+            # assume player gonna goes into specific square
+
             opposite_point = self.getScoreOfPosition(oppositePlayer, row, col)
             max_point = max(max_point, self_point, opposite_point)
+            # If somehow point are equal, both gonna be assigned, therefore, bot will play rather than block
             if opposite_point >= max_point:
                 next_mark = (row, col)
             if self_point >= max_point:
                 next_mark = (row, col)
+            # If somehow reach dead-end, it still play =))))
         return next_mark
 
     def getSquaresHasPointLargeThan(self, selfPlayer, oppositePlayer, minPoint):
@@ -180,3 +216,6 @@ class AdvancedBoardLogic(BasicBoardLogic):
                     get_op_point = opposite_point
                     next_mark = (row, col)
         return next_mark
+    
+    
+

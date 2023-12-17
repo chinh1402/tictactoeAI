@@ -132,6 +132,9 @@ class Menu:
         #                      ).translate(0, 160)
 
     def initPVPGame(self):
+        # print(self.selector1.get_value())
+        # take value from UI and then render it through GameAction
+        # Which is equivalent to 
         boardSize = self.selector1.get_value()[0][1]
         gameTheme = LightTheme
         if self.theme.get_value():

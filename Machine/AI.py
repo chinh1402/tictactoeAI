@@ -4,6 +4,12 @@ from threading import Thread
 
 from Board.BoardLogic import AdvancedBoardLogic
 
+from math import inf as infinity
+from Machine.bigBoardLogic.minimaxnode import MinimaxNode
+from Machine.bigBoardLogic.abpruningai import ABPruningAI
+from Machine.bigBoardLogic.state import State
+import Machine.bigBoardLogic.bigBoardAIConfig.aisettings as ai_settings
+import Machine.bigBoardLogic.bigBoardAIConfig.gamesettings as game_settings
 
 class AI:
     def __init__(self, aiLevel=1, aiPlayer=2, userPlayer=1):
@@ -11,8 +17,11 @@ class AI:
         self.aiPlayer = aiPlayer
         self.userPlayer = userPlayer
         self.minDepth = 0
+        self.ran = 0
 
     def minimax_update(self, board, isMaximizing, alpha, beta, depth):
+        self.ran += 1
+        print("Have ran: ", self.ran)
         if board.isFull() or depth == 0:
             return 0, None
 
@@ -31,6 +40,7 @@ class AI:
                 tempBoard.markSquare(self.userPlayer, row, col)
                 myEval = self.minimax_update(tempBoard, False, alpha, beta, depth - 1)[0]
                 if myEval > maxEval:
+                    # This causes the infinite loop
                     maxEval = myEval
                     bestMove = (row, col)
                 alpha = max(alpha, myEval)
@@ -49,42 +59,14 @@ class AI:
                 if myEval < minEval:
                     minEval = myEval
                     bestMove = (row, col)
-                alpha = min(beta, myEval)
+                beta = min(beta, myEval)
                 if beta <= alpha:
                     break
             return minEval, bestMove
 
-    # Hàm miniMax(board, isMax):
-    #     Nếu tất cả ô đầy:
-    #         Trả về 0
-    #
-    #     Nếu người chơi chiến thắng (người chơi là max):
-    #         Trả về 1
-    #
-    #     Nếu máy chiến thắng (máy là min):
-    #         Trả về -1
-    #
-    #     Nếu là lượt chơi của máy:
-    #         # Khởi tạo giá trị min vô cùng lớn
-    #         Giá trị min = 100
-    #         For các ô trống trong bảng:
-    #             Thực hiện đánh dấu ô trống
-    #             Thay đổi lượt chơi
-    #             Giá trị trả về = Đệ qui với bảng đã đánh dấu ô trống
-    #             Nếu giá trị trả về nhỏ hơn giá trị min thì thay thế giá trị min
-    #         Trả về ô trống có giá trị min nhỏ nhất
-    #
-    #     Nếu là lượt chơi của người chơi:
-    #         # Khởi tạo giá trị max vô cùng nhỏ
-    #         Giá trị max = -100
-    #         For các ô trống trong bảng:
-    #             Thực hiện đánh dấu ô trống
-    #             Thay đổi lượt chơi
-    #             Giá trị trả về = Đệ qui với bảng đã đánh dấu ô trống
-    #             Nếu giá trị trả về lớn hơn giá trị max thì thay thế giá trị max
-    #         Trả về ô trống có giá trị max lớn nhất
-
     def minimax(self, board: AdvancedBoardLogic, isMaximizing, depth):
+        self.ran += 1
+        print("Have ran: ", self.ran)
         if board.isFull() or depth == 0:
             return 0, None
 
@@ -99,6 +81,7 @@ class AI:
             bestMove = None
             emptySqrs = board.getEmptySquares()
             for (row, col) in emptySqrs:
+                
                 tempBoard = copy.deepcopy(board)
                 tempBoard.markSquare(self.userPlayer, row, col)
                 myEval = self.minimax(tempBoard, False, depth - 1)[0]
@@ -120,24 +103,28 @@ class AI:
                     bestMove = (row, col)
             return minEval, bestMove
 
+    # Do mình hiện tại ko thể rẽ nhánh code dựa trường hợp, nên mình sẽ tạm thời comment lại
+    # codes của hàm chạy cho bảng 3x3. Và code cho những bảng lớn hơn 
     def evalMove(self, main_board: AdvancedBoardLogic):
-        # print(self.aiLevel)
-        print(main_board.getMostBenefitSqrs(self.aiPlayer, self.userPlayer))
         if self.aiLevel == 1:
             # print("Easy")
+            # self.mostMove(main_board) => main_board.getMostBenefitSqrs(self.aiPlayer, self.userPlayer)
+            # => next_mark => (row,col)
             return self.mostMove(main_board)
+        
         elif self.aiLevel == 2:
             # print("Medium")
+            # self.mediumLevel(main_board) => move
             return self.mediumLevel(main_board)
         else:
             # print("Hard")
+            # self.hardLevel(main_board) => move
             return self.hardLevel(main_board)
 
     def mostMove(self, main_board):
+        # return a coordination of the move (nextmark);
         return main_board.getMostBenefitSqrs(self.aiPlayer, self.userPlayer)
-
-    def mostMoveEnhanced(self, main_board):
-        return main_board.getMostBenefitEnhance(self.aiPlayer, self.userPlayer)
+    
 
     def randomLevel(self, main_board):
         emptySqrs = main_board.getEmptySquares()
@@ -151,11 +138,24 @@ class AI:
         if main_board.getNumberOfTurn() < 2:
             move = self.randomLevel(main_board)
         else:
-            myEval, move = self.minimax(main_board, False, 1000)
+            # Why this doesn't work? Because there's no artificial evaluation rather than 0 -1 1
+            # myEval, move = self.minimax(main_board, False, 10)
+
+        # =====================================
+            move = self.hardGetNextMove(main_board)
+
         return move
 
     def hardLevel(self, main_board):
-        myEval, move = self.minimax_update(main_board, False, -100, 100, 1000)
+        # Added random move to remove first move bug
+        if main_board.getNumberOfTurn() <= 4:
+            squaresState = main_board._squares
+            possible_moves = State.generate_possible_moves(squaresState, ai_settings.EXPANSION_RANGE)
+            move = random.choice(possible_moves)
+            return move
+        else: 
+            # myEval, move = self.minimax_update(main_board, False, -100, 100, 10)
+            move = self.hardGetNextMove(main_board)
         return move
 
 # class AIThreading(Thread):
@@ -174,3 +174,60 @@ class AI:
 #     def join(self, *args):
 #         Thread.join(self, *args)
 #         return self._return
+    def hardGetNextMove(self, main_board):
+        last_move = main_board._listMarked[-1].position
+        squaresState = main_board._squares
+        id_AI = self.aiPlayer
+
+        # Check checkmate move for either
+        com_checkmate_move = State.checkmate(squaresState, id_AI)
+        if com_checkmate_move: 
+            print("AI has checkmate move.")
+            return com_checkmate_move
+        
+        opponent_checkmate_move = State.checkmate(squaresState, game_settings.get_opponent(id_AI))
+        if opponent_checkmate_move:
+            print("HUMAN has checkmate move.")
+            return opponent_checkmate_move
+        print("No one has checkmate move.")
+        print("---------------------------------")
+
+        print("Checking for high-impact move...")
+
+        if ai_settings.ENABLE_HIGH_IMPACT_MOVE:
+            opponent_high_impact_move, opponent_high_impact_score = State.high_impact_move(squaresState, game_settings.get_opponent(id_AI))
+            com_high_impact_move, com_high_impact_score = State.high_impact_move(squaresState, id_AI)
+            if opponent_high_impact_move and opponent_high_impact_score > com_high_impact_score:
+                print("AI has discovered that HUMAN has a high-impact move.")
+                print("AI has taken this move (a defensive move).")
+                return opponent_high_impact_move
+            if com_high_impact_move and com_high_impact_score >= opponent_high_impact_score: # >=: Prioritize playing the move to the advantage of the player
+                print("AI has discovered that it has a high-impact move.")
+                print("AI has taken this move (an offensive move).")
+                return com_high_impact_move
+            print("AI did not discover any high-impact moves.")
+        print("---------------------------------")
+        # Check combo move
+        print("Checking for combo moves...")
+        opponent_combo_move = State.combo_move(squaresState, game_settings.get_opponent(id_AI))
+        com_combo_move = State.combo_move(squaresState, id_AI)
+        if com_combo_move:
+            print("AI has a combo move. Take it!")
+            return com_combo_move
+        if opponent_combo_move: 
+            print("HUMAN has a combo move. Block it!")
+            return opponent_combo_move
+
+        # # Announcement
+        print("There is no combo move.")
+        print("---------------------------------")
+
+        # =======================================
+        # if not
+
+        # Announcement
+        print("AI has decided to use the Alpha-Beta pruning algorithm. Calculating...")
+
+        root_node = MinimaxNode(squaresState, last_move, id_AI, None)
+        ABPruningAI.alpha_beta(root_node, ai_settings.MAX_TREE_DEPTH_LEVEL, -infinity, +infinity, True)
+        return root_node.planing_next_move

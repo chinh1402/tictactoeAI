@@ -4,7 +4,10 @@ from Board.BoardGUI import *
 from Board.BoardLogic import *
 from Machine.AI import *
 from Menu.GamePanel import GamePanel
+import Machine.bigBoardLogic.bigBoardAIConfig.gamesettings as gamesettings
 
+GAMEROW = 0
+GAMECOL = 0
 
 class GameAction:
     def __init__(self, screen, theme, menu, boardSize):
@@ -73,6 +76,8 @@ class GameAction:
 
     # Chơi với máy
     def runGameAI(self, aiLevel=1):
+        gamesettings.BOARD_ROW_COUNT = self.row
+        gamesettings.BOARD_COL_COUNT = self.col
         ai = AI(aiLevel)
         while True:
             events = pygame.event.get()
@@ -95,7 +100,10 @@ class GameAction:
                 if self.is_running and ai.aiPlayer == self.playerTurn:
                     self.panel.run(events, self.playerTurn, "Computer")
                     none_gui_board = AdvancedBoardLogic()
+                    # copyBoard taking in the board, which append default values to basicboardlogic
                     none_gui_board.copyBoard(self.board)
+
+                    # Eval move base on difficulty, easy => run easy eval, medium.. run medium eval,...
                     row, col = ai.evalMove(none_gui_board)
                     self.move(row, col)
                     pygame.display.update()
