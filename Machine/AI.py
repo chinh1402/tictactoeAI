@@ -136,19 +136,21 @@ class AI:
 
     def mediumLevel(self, main_board):
         if main_board.getNumberOfTurn() < 2:
-            move = self.randomLevel(main_board)
+            squaresState = main_board._squares
+            possible_moves = State.generate_possible_moves(squaresState, ai_settings.EXPANSION_RANGE)
+            move = random.choice(possible_moves)
         else:
             # Why this doesn't work? Because there's no artificial evaluation rather than 0 -1 1
             # myEval, move = self.minimax(main_board, False, 10)
 
         # =====================================
-            move = self.hardGetNextMove(main_board)
+            move = self.mediumGetNextMove(main_board)
 
         return move
 
     def hardLevel(self, main_board):
         # Added random move to remove first move bug
-        if main_board.getNumberOfTurn() <= 4:
+        if main_board.getNumberOfTurn() <= 2:
             squaresState = main_board._squares
             possible_moves = State.generate_possible_moves(squaresState, ai_settings.EXPANSION_RANGE)
             move = random.choice(possible_moves)
@@ -174,7 +176,27 @@ class AI:
 #     def join(self, *args):
 #         Thread.join(self, *args)
 #         return self._return
+    def mediumGetNextMove(self, main_board):
+        # Check for checkmate move and run the alphabeta pruning with depth = 1
+        last_move = main_board._listMarked[-1].position
+        squaresState = main_board._squares
+        id_AI = self.aiPlayer
+
+        com_checkmate_move = State.checkmate(squaresState, id_AI)
+        if com_checkmate_move: 
+            return com_checkmate_move
+        
+        opponent_checkmate_move = State.checkmate(squaresState, game_settings.get_opponent(id_AI))
+        if opponent_checkmate_move:
+            return opponent_checkmate_move
+
+        root_node = MinimaxNode(squaresState, last_move, id_AI, None)
+        ABPruningAI.alpha_beta(root_node, 1, -infinity, +infinity, True)
+        return root_node.planing_next_move
+
     def hardGetNextMove(self, main_board):
+        # Check for checkmate move, high impact move and combo move, then run the alphabeta pruning with depth = 2
+
         last_move = main_board._listMarked[-1].position
         squaresState = main_board._squares
         id_AI = self.aiPlayer
