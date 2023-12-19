@@ -1,5 +1,6 @@
 import copy
 import random
+import time
 from threading import Thread
 
 from Board.BoardLogic import AdvancedBoardLogic
@@ -122,6 +123,7 @@ class AI:
             return self.hardLevel(main_board)
 
     def mostMove(self, main_board):
+        print(main_board._squares)
         # return a coordination of the move (nextmark);
         return main_board.getMostBenefitSqrs(self.aiPlayer, self.userPlayer)
     
@@ -189,9 +191,20 @@ class AI:
         opponent_checkmate_move = State.checkmate(squaresState, game_settings.get_opponent(id_AI))
         if opponent_checkmate_move:
             return opponent_checkmate_move
+        
+        start_time = time.time()
 
         root_node = MinimaxNode(squaresState, last_move, id_AI, None)
-        ABPruningAI.alpha_beta(root_node, 1, -infinity, +infinity, True)
+        ai_instance = ABPruningAI()
+        ai_instance.alpha_beta(root_node, 2, -infinity, +infinity, True)
+        
+        end_time = time.time()
+
+        AI_Calculation_time = round(end_time - start_time, 3)
+        
+        print("Algorithm ran: " + str(ai_instance.ran))
+        print("Pruned:" + str(ai_instance.prune))
+        print("Time:" + str(AI_Calculation_time) + "s")
         return root_node.planing_next_move
 
     def hardGetNextMove(self, main_board):
@@ -250,6 +263,17 @@ class AI:
         # Announcement
         print("AI has decided to use the Alpha-Beta pruning algorithm. Calculating...")
 
+        start_time = time.time()
+        
         root_node = MinimaxNode(squaresState, last_move, id_AI, None)
-        ABPruningAI.alpha_beta(root_node, ai_settings.MAX_TREE_DEPTH_LEVEL, -infinity, +infinity, True)
+        ai_instance = ABPruningAI()
+        ai_instance.alpha_beta(root_node, ai_settings.MAX_TREE_DEPTH_LEVEL, -infinity, +infinity, True)
+        
+        end_time = time.time()
+
+        AI_Calculation_time = round(end_time - start_time, 3)
+        
+        print("Algorithm ran: " + str(ai_instance.ran))
+        print("Pruned:" + str(ai_instance.prune))
+        print("Time:" + str(AI_Calculation_time) + "s")
         return root_node.planing_next_move

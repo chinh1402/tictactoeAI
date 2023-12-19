@@ -102,7 +102,6 @@ class GameAction:
                     none_gui_board = AdvancedBoardLogic()
                     # copyBoard taking in the board, which append default values to basicboardlogic
                     none_gui_board.copyBoard(self.board)
-
                     # Eval move base on difficulty, easy => run easy eval, medium.. run medium eval,...
                     row, col = ai.evalMove(none_gui_board)
                     self.move(row, col)

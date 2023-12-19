@@ -9,9 +9,10 @@ from Machine.bigBoardLogic.state import State
 from Machine.bigBoardLogic.minimaxnode import MinimaxNode
 
 class ABPruningAI:
-    def __init__(self, __state: State) -> None:
-        self.state = __state
-    def alpha_beta(current_node: MinimaxNode, depth, alpha, beta, maximizingPlayer):
+    def __init__(self) -> None:
+        self.ran = 0
+        self.prune = 0
+    def alpha_beta(self, current_node: MinimaxNode, depth, alpha, beta, maximizingPlayer):
         """
         
         It's a recursive function that implements alpha beta pruning algorithm 
@@ -36,26 +37,30 @@ class ABPruningAI:
             return X_score - O_score
         
         if maximizingPlayer:
+            self.ran += 1
             value = -infinity
             child_nodes = current_node.generate_child_nodes()
             for child_node in child_nodes:
-                temp = ABPruningAI.alpha_beta(child_node, depth - 1, alpha, beta, False)
+                temp = self.alpha_beta(child_node, depth - 1, alpha, beta, False)
                 alpha = max(alpha, value)
-                #value = max(value, temp)
                 if temp > value:
                     value = temp
                     current_node.planing_next_move = child_node.last_move
-                if value >= beta:
+                if alpha >= beta:
+                    self.prune += 1
                     break
             return value
         else:
+            self.ran += 1
             value = + infinity
             child_nodes = current_node.generate_child_nodes()
             for child_node in child_nodes:
-                temp = ABPruningAI.alpha_beta(child_node, depth - 1, alpha, beta, True)
-                # value = min(value, temp)
+                temp = self.alpha_beta(child_node, depth - 1, alpha, beta, True)
+                beta = min(beta, value)
                 if temp < value:
                     value = temp
                     current_node.planing_next_move = child_node.last_move
-                beta = min(beta, value)
+                if alpha >= beta:
+                    self.prune += 1
+                    break
             return value
