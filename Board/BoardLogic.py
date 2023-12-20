@@ -144,27 +144,14 @@ class BasicBoardLogic:
 
 class AdvancedBoardLogic(BasicBoardLogic):
     def getMostBenefitSqrs(self, selfPlayer, oppositePlayer):
-        # print("Player has played a move in easy mode")
-        # Row wise
-        # print(self._squares[0])
-        # Move wise
-        # print(int(self._squares[0][1]))
-        # Last move doesn't print because the game is not running, check GamePlay.GameAction.py
-
         if self.isFull():
             return -1, -1
-        # Take all the empty squares on hte board
         emptySqr = self.getEmptySquares()
         max_point = 0
-
-        # Take the first square as next_mark?
-        # Initialize mark to start running thruu the fucking board like an idiot
         next_mark = emptySqr[0]
         for row, col in emptySqr:
-            # Loop thru every single fucking square to check if the next move 
-            # It gonna check: if opponent has more point than you then block, otherwise, play
+            # It gonna check: if opponent has more or equal point than you then block, otherwise, play
             
-            # assume AI gonna goes into specific square
             self_point = self.getScoreOfPosition(selfPlayer, row, col)
             # assume player gonna goes into specific square
 

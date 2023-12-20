@@ -106,7 +106,7 @@ class AI:
             # print("Easy")
             # self.mostMove(main_board) => main_board.getMostBenefitSqrs(self.aiPlayer, self.userPlayer)
             # => next_mark => (row,col)
-            return self.mostMove(main_board)
+            return self.easyLevel(main_board)
         
         elif self.aiLevel == 2:
             # print("Medium")
@@ -116,9 +116,8 @@ class AI:
             # print("Hard")
             # self.hardLevel(main_board) => move
             return self.hardLevel(main_board)
-
-    def mostMove(self, main_board):
-        # return a coordination of the move (nextmark);
+        
+    def easyLevel(self, main_board):
         return main_board.getMostBenefitSqrs(self.aiPlayer, self.userPlayer)
     
 
@@ -127,8 +126,7 @@ class AI:
         move = emptySqrs[random.randint(0, len(emptySqrs) - 1)]
         return move
 
-    def easyLevel(self, main_board):
-        return self.mostMove(main_board)
+    
 
     def mediumLevel(self, main_board):
         if main_board.getNumberOfTurn() < 2:
