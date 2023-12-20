@@ -242,34 +242,6 @@ class State:
         is_r_valid = (0 <= move_r < game_settings.BOARD_ROW_COUNT)
         is_c_valid = (0 <= move_c < game_settings.BOARD_COL_COUNT)
         return is_c_valid and is_r_valid
-    def generate_possible_moves(board, expansion_range):
-        """
-        If the board is empty, return all possible moves. Otherwise, return all possible moves that are
-        not empty and have a neighbor
-        
-        :param board: the current board state
-        :return: A list of tuples.
-        """
-
-        # rỗng thì append tất
-        possible_moves = []
-        if np.array_equal(board, game_settings.EMPTY_BOARD):
-            for r in range(0, game_settings.BOARD_ROW_COUNT):
-                for c in range(0, game_settings.BOARD_COL_COUNT):
-                    possible_moves.append((r, c))
-        else:
-            # vẫn duyệt qua tất cả ô
-            for r in range(0, game_settings.BOARD_ROW_COUNT):
-                for c in range(0, game_settings.BOARD_COL_COUNT):
-                    temp_move = board[r][c]
-                    # Nếu không rỗng thì loop tiếp
-                    if(temp_move != game_settings.EMPTY):
-                        continue
-                    # Nếu không có hàng xóm trong radius thì loop tiếp
-                    if not State.has_neighbor((r, c), board, expansion_range):
-                        continue
-                    possible_moves.append((r, c))
-        return possible_moves
     def high_impact_move(board, current_turn):
         """
         It takes a board and a player, and returns the move that would have the highest impact on the
@@ -352,6 +324,7 @@ class State:
             return None
     def combo_move(board, current_turn):
         # combo move
+        # nước 4 chặn 1 và nước 3 không chặn cùng 1 nước
         # is a combo which could create a one-end-blocked-four and a unblocked three 
         # or n blocked-four (n>=2)
 
@@ -375,7 +348,9 @@ class State:
             move_direction_set = set()
             matched_direction_count = 0
 
+            # pre-calculate 1 move
             direction_pattern_tuples = State.get_direction_pattern_tuples(board, p_m_move, 4, current_turn) # streak = 4 because we are checking length-5 patterns
+            # if found pattern after placing the move
             if(len(direction_pattern_tuples) > 0) :
                 for tuple in direction_pattern_tuples:
                     direction, pattern = tuple

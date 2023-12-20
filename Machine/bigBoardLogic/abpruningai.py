@@ -13,26 +13,8 @@ class ABPruningAI:
         self.ran = 0
         self.prune = 0
     def alpha_beta(self, current_node: MinimaxNode, depth, alpha, beta, maximizingPlayer):
-        """
-        
-        It's a recursive function that implements alpha beta pruning algorithm 
-        to calculate the best possible score for the current player, given the current board state
-        
-        :param current_node: MinimaxNode, depth, alpha, beta, maximizingPlayer
-        :type current_node: MinimaxNode
-        :param depth: The depth of the search tree
-        :param alpha: the best value that the maximizing player currently can guarantee at this point or
-        above
-        :param beta: the best value that the maximizing player currently can guarantee at that level or
-        higher
-        :param maximizingPlayer: True if it's the AI's turn, False if it's the player's turn
-        :return: The value of the best move.
-        """
-        # https://www.geeksforgeeks.org/minimax-algorithm-in-game-theory-set-4-alpha-beta-pruning/
-        # https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning
-        
-        # fail-soft alpha-beta
         if(depth == 0 or State.game_over(current_node.board)):
+            self.ran += 1
             O_score, X_score = State.evaluate(current_node.board)
             return X_score - O_score
         

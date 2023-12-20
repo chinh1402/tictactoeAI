@@ -16,15 +16,6 @@ def get_opponent(player):
     if player == 2:
         return 1
 
-# TURN
-# Human move 1st
-FIRST_TURN = HUMAN
-SECOND_TURN = COM
-
-# # COM move 1st
-# FIRST_TURN = COM
-# SECOND_TURN = HUMAN
-
 # SYMBOL
 EMPTY = NO_ONE
 O = HUMAN

@@ -23,14 +23,15 @@ class AI:
     def minimax_update(self, board, isMaximizing, alpha, beta, depth):
         self.ran += 1
         print("Have ran: ", self.ran)
-        if board.isFull() or depth == 0:
-            return 0, None
 
         if board.getWinningState() == self.userPlayer:
             return 1, None
 
         if board.getWinningState() == self.aiPlayer:
             return -1, None
+        
+        elif board.isFull() or depth == 0:
+            return 0, None
 
         if isMaximizing:
             maxEval = -100
@@ -41,7 +42,6 @@ class AI:
                 tempBoard.markSquare(self.userPlayer, row, col)
                 myEval = self.minimax_update(tempBoard, False, alpha, beta, depth - 1)[0]
                 if myEval > maxEval:
-                    # This causes the infinite loop
                     maxEval = myEval
                     bestMove = (row, col)
                 alpha = max(alpha, myEval)
@@ -67,22 +67,18 @@ class AI:
 
     def minimax(self, board: AdvancedBoardLogic, isMaximizing, depth):
         self.ran += 1
-        print("Have ran: ", self.ran)
-        if board.isFull() or depth == 0:
-            return 0, None
-
+        print("Have ran: ", self.ran)  
         if board.getWinningState() == self.userPlayer:
             return 1, None
-
         if board.getWinningState() == self.aiPlayer:
-            return -1, None
-
+            return -1, None     
+        elif board.isFull() or depth == 0:
+            return 0, None
         if isMaximizing:
             maxEval = -100
             bestMove = None
             emptySqrs = board.getEmptySquares()
             for (row, col) in emptySqrs:
-                
                 tempBoard = copy.deepcopy(board)
                 tempBoard.markSquare(self.userPlayer, row, col)
                 myEval = self.minimax(tempBoard, False, depth - 1)[0]
@@ -90,7 +86,6 @@ class AI:
                     maxEval = myEval
                     bestMove = (row, col)
             return maxEval, bestMove
-
         if not isMaximizing:
             minEval = 100
             bestMove = None
@@ -123,7 +118,6 @@ class AI:
             return self.hardLevel(main_board)
 
     def mostMove(self, main_board):
-        print(main_board._squares)
         # return a coordination of the move (nextmark);
         return main_board.getMostBenefitSqrs(self.aiPlayer, self.userPlayer)
     
@@ -142,24 +136,28 @@ class AI:
             possible_moves = State.generate_possible_moves(squaresState, ai_settings.EXPANSION_RANGE)
             move = random.choice(possible_moves)
         else:
-            # Why this doesn't work? Because there's no artificial evaluation rather than 0 -1 1
-            # myEval, move = self.minimax(main_board, False, 10)
-
-        # =====================================
-            move = self.mediumGetNextMove(main_board)
+            if(game_settings.BOARD_COL_COUNT == 3):
+                myEval, move = self.minimax(main_board, False, 1000)
+                print("eval:",myEval)
+            else: 
+                move = self.mediumGetNextMove(main_board)
 
         return move
 
     def hardLevel(self, main_board):
         # Added random move to remove first move bug
-        if main_board.getNumberOfTurn() <= 2:
+        if main_board.getNumberOfTurn() < 2:
             squaresState = main_board._squares
             possible_moves = State.generate_possible_moves(squaresState, ai_settings.EXPANSION_RANGE)
             move = random.choice(possible_moves)
             return move
         else: 
-            # myEval, move = self.minimax_update(main_board, False, -100, 100, 10)
-            move = self.hardGetNextMove(main_board)
+            if(game_settings.BOARD_COL_COUNT == 3):
+                myEval, move = self.minimax_update(main_board, False, -1000, 1000, 1000)
+                print("eval:",myEval)
+
+            else:
+                move = self.hardGetNextMove(main_board)
         return move
 
 # class AIThreading(Thread):
@@ -272,7 +270,7 @@ class AI:
         end_time = time.time()
 
         AI_Calculation_time = round(end_time - start_time, 3)
-        
+        print ("==========================")
         print("Algorithm ran: " + str(ai_instance.ran))
         print("Pruned:" + str(ai_instance.prune))
         print("Time:" + str(AI_Calculation_time) + "s")
